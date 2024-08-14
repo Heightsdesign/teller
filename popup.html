@@ -1,25 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <style>
-    #controls {
-      display: flex;
-      justify-content: space-around;
-      padding: 10px;
-    }
-    button {
-      padding: 10px;
-      font-size: 16px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        /* Add some basic styling */
+        #registerBox, #main {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div id="controls">
-    <button id="play">Play</button>
-    <button id="pause">Pause</button>
-    <button id="rewind">Rewind 10s</button>
-    <button id="forward">Forward 10s</button>
-  </div>
-  <script src="popup.js"></script>
+    <!-- Login Dialog -->
+    <div id="loginBox">
+        <h2>Login</h2>
+        <input type="text" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button id="loginButton">Login</button>
+        <p id="errorMessage"></p>
+        <p>Don't have an account? <a href="#" id="goToRegister">Register here</a></p>
+    </div>
+
+    <!-- Registration Dialog -->
+    <div id="registerBox">
+        <h2>Register</h2>
+        <input type="text" id="registerEmail" placeholder="Email">
+        <input type="password" id="registerPassword" placeholder="Password">
+        <button id="registerButton">Register</button>
+        <p id="registerErrorMessage"></p>
+        <p>Already have an account? <a href="#" id="goToLogin">Login here</a></p>
+    </div>
+
+    <!-- Main Interface -->
+    <div id="main">
+        <h2>Welcome to the App!</h2>
+        <button id="logoutButton">Logout</button>
+    </div>
+
+    <script src="popup.js"></script>
 </body>
 </html>
