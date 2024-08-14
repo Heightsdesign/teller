@@ -13,6 +13,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
     current_chunk_index = Column(Integer, default=0)
+    subscription_type = Column(String, default='free')
     progress = relationship("Progress", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password):
