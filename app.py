@@ -42,20 +42,31 @@ def register():
 
     return jsonify({"message": "User registered successfully"})
 
-
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
     email = data.get('email')
     password = data.get('password')
 
-    # Validate the user credentials with the database here
+    print(f"Login attempt: {email}")  # Debugging statement
+
+    # Fetch user from the database
     user = db_session.query(User).filter_by(email=email).first()
+
+    if user:
+        print(f"User found: {user.email}, checking password...")  # Debugging statement
+    else:
+        print("No user found with that email.")  # Debugging statement
+
     if user and user.check_password(password):
         flask_session['user_id'] = user.id  # Store the user_id in the Flask session
+        print(f"User logged in with ID: {user.id}")  # Log the user ID for debugging
         return jsonify({"message": "Login successful"}), 200
     else:
+        print("Invalid credentials provided.")  # Debugging statement
         return jsonify({"error": "Invalid credentials"}), 401
+
+
     
 
 @app.route('/extract_text', methods=['POST'])
@@ -111,9 +122,11 @@ def extract_text():
 @app.route('/logout', methods=['POST'])
 def logout():
     if 'user_id' in flask_session:
-        flask_session.pop('user_id', None)  # Remove the user_id from the Flask session
+        print(f"Logging out user with ID: {flask_session['user_id']}")  # Add this line for debugging
+        flask_session.pop('user_id', None)  # Remove the user_id from the session
         return jsonify({"message": "Logged out successfully"}), 200
     else:
+        print("No user_id found in session")  # Add this line for debugging
         return jsonify({"error": "User not logged in"}), 400
 
 if __name__ == '__main__':
