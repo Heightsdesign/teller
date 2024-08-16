@@ -21,50 +21,77 @@ db_session = scoped_session(sessionmaker(bind=engine))
 def remove_session(exception=None):
     db_session.remove()
 
+
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    subscription_type = data.get('subscription_type', 'free')
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        subscription_type = data.get('subscription_type', 'free')
 
-    if not email or not password:
-        return jsonify({"error": "Email and password are required"}), 400
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
 
-    if db_session.query(User).filter_by(email=email).first():
-        return jsonify({"error": "User already exists"}), 400
+        existing_user = db_session.query(User).filter_by(email=email).first()
+        if existing_user:
+            return jsonify({"error": "User already exists"}), 400
 
-    new_user = User(email=email)
-    new_user.set_password(password)
-    new_user.subscription_type = subscription_type  # Set subscription type
-    db_session.add(new_user)
-    db_session.commit()
+        # Create and add the new user
+        new_user = User(email=email)
+        new_user.set_password(password)
+        new_user.subscription_type = subscription_type
+        db_session.add(new_user)
+        db_session.commit()
 
-    return jsonify({"message": "User registered successfully"})
+        # Verify the user was added
+        added_user = db_session.query(User).filter_by(email=email).first()
+        if not added_user:
+            raise Exception("Failed to add user to the database")
+
+        return jsonify({"message": "User registered successfully"})
+
+    except Exception as e:
+        db_session.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        db_session.close()  # Ensure session is closed
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.json
-    email = data.get('email')
-    password = data.get('password')
+    try:
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
 
-    print(f"Login attempt: {email}")  # Debugging statement
+        # Log received data
+        print(f"Received login request for email: {email}")
 
-    # Fetch user from the database
-    user = db_session.query(User).filter_by(email=email).first()
+        # Query the user from the database
+        user = db_session.query(User).filter_by(email=email).first()
 
-    if user:
-        print(f"User found: {user.email}, checking password...")  # Debugging statement
-    else:
-        print("No user found with that email.")  # Debugging statement
+        if user:
+            print(f"User found: {user.email}")
+        else:
+            print(f"No user found with email: {email}")
+            return jsonify({"error": "Invalid credentials"}), 401
 
-    if user and user.check_password(password):
-        flask_session['user_id'] = user.id  # Store the user_id in the Flask session
-        print(f"User logged in with ID: {user.id}")  # Log the user ID for debugging
-        return jsonify({"message": "Login successful"}), 200
-    else:
-        print("Invalid credentials provided.")  # Debugging statement
-        return jsonify({"error": "Invalid credentials"}), 401
+        # Check the password
+        if user.check_password(password):
+            flask_session['user_id'] = user.id  # Store the user_id in the Flask session
+            print(f"User {user.email} logged in successfully")
+            return jsonify({"message": "Login successful"}), 200
+        else:
+            print(f"Password check failed for user: {user.email}")
+            return jsonify({"error": "Invalid credentials"}), 401
+
+    except Exception as e:
+        print(f"Error during login: {str(e)}")
+        return jsonify({"error": "An error occurred during login"}), 500
+
+    finally:
+        db_session.close()  # Ensure the session is closed after the request
 
 
     

@@ -40,9 +40,12 @@ class Chunk(Base):
 DATABASE_URL = 'sqlite:///app.db'  # You can change this to PostgreSQL, MySQL, etc.
 
 engine = create_engine(DATABASE_URL)
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
 
+# Commenting out this line to prevent dropping the tables
+# Base.metadata.drop_all(engine)
+
+# This line will create the tables if they don't already exist
+Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 session = Session()
